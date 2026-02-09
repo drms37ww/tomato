@@ -2,7 +2,7 @@
   "name": "Study App",
   "short_name": "Study",
   "description": "Flashcards + Todos for efficient studying",
-  "start_url": "/study-app/",
+  "start_url": "/tomato/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
