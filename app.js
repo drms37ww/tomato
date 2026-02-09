@@ -1,5 +1,5 @@
 // ============ CONFIGURATION ============
-const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbweV3aDJpY4Mf0TZQdeeOFZK_7Taq6oYmaDLmA5guaSPKR3SyP_ehwdG4tfWykr9nTV_g/exec';
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwC2jZCHMz3mMpaIwwVRWa9G608RAefwFlwwog9Z_f0sl4sK5s8j6ibsK1n6lK67Oo2sA/exec';
 
 // ============ STATE ============
 let state = {
