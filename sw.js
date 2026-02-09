@@ -1,11 +1,11 @@
-const CACHE_NAME = 'study-app-v1';
+const CACHE_NAME = 'tomato-v1';
 const urlsToCache = [
-  '/study-app/',
-  '/study-app/index.html',
-  '/study-app/app.js',
-  '/study-app/manifest.json',
-  '/study-app/icon-192.png',
-  '/study-app/icon-512.png'
+  '/tomato/',
+  '/tomato/index.html',
+  '/tomato/app.js',
+  '/tomato/manifest.json',
+  '/tomato/icon-192.png',
+  '/tomato/icon-512.png'
 ];
 
 self.addEventListener('install', (event) => {
