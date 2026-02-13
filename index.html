@@ -2,153 +2,637 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta http-equiv="Content-Security-Policy" content="default-src * blob: data: 'unsafe-inline' 'unsafe-eval';">
-<title>Browser</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Tomato Browser</title>
+
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0a0a0f">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Tomato">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+
+<!-- CSP: allow all iframe sources for browsing -->
+<meta http-equiv="Content-Security-Policy" content="default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; frame-src *;">
+
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  html, body { height: 100%; background: #0a0a0f; font-family: system-ui, sans-serif; }
-  .toolbar {
-    height: 48px; background: #111; display: flex; align-items: center;
-    padding: 0 12px; gap: 8px; border-bottom: 1px solid #222;
-  }
-  .url-bar {
-    flex: 1; height: 32px; background: #1a1a1a; border: 1px solid #333;
-    border-radius: 6px; padding: 0 12px; color: #ccc; font-size: 13px;
-    outline: none; font-family: monospace;
-  }
-  .url-bar:focus { border-color: #6CABDD; }
-  .url-bar::placeholder { color: #555; }
-  .go-btn {
-    height: 32px; padding: 0 16px; background: #6CABDD; color: #000;
-    border: none; border-radius: 6px; font-size: 13px; font-weight: 600; cursor: pointer;
-  }
-  .go-btn:hover { background: #85bde8; }
-  .content { height: calc(100vh - 48px); }
-  .content iframe { width: 100%; height: 100%; border: none; background: #fff; }
 
-  /* Install banner */
+  :root {
+    --bg: #0a0a0f;
+    --surface: #14141f;
+    --toolbar: #111119;
+    --border: #2a2a3a;
+    --text: #e8e8f0;
+    --text-dim: #7777a0;
+    --accent: #dc3220;
+    --accent-hover: #e8503e;
+    --accent-glow: rgba(220, 50, 32, 0.12);
+  }
+
+  html, body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    height: 100vh;
+    height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* ── Tab Bar ── */
+  .tab-bar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 6px 10px 0;
+    background: var(--toolbar);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    overflow-x: auto;
+    -webkit-app-region: drag;
+  }
+
+  .tab {
+    -webkit-app-region: no-drag;
+    padding: 6px 12px;
+    font-size: 0.72rem;
+    font-weight: 500;
+    color: var(--text-dim);
+    background: transparent;
+    border: 1px solid transparent;
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+    max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .tab.active { background: var(--bg); color: var(--text); border-color: var(--border); }
+  .tab:hover:not(.active) { background: var(--surface); }
+
+  .tab-close {
+    width: 14px; height: 14px;
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 4px; font-size: 10px; flex-shrink: 0;
+    opacity: 0.5; transition: opacity 0.15s;
+  }
+  .tab:hover .tab-close { opacity: 1; }
+  .tab-close:hover { background: rgba(255,255,255,0.12); }
+
+  .new-tab-btn {
+    -webkit-app-region: no-drag;
+    width: 26px; height: 26px;
+    border: none; border-radius: 6px;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; font-size: 16px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
+  .new-tab-btn:hover { background: var(--surface); color: var(--text); }
+
+  /* ── Toolbar ── */
+  .toolbar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: var(--toolbar);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .nav-btns { display: flex; gap: 3px; }
+
+  .nav-btn {
+    width: 30px; height: 30px;
+    border: none; border-radius: 7px;
+    background: transparent; color: var(--text-dim);
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+    transition: background 0.15s, color 0.15s;
+  }
+  .nav-btn:hover { background: var(--surface); color: var(--text); }
+  .nav-btn:active { transform: scale(0.94); }
+  .nav-btn svg { width: 15px; height: 15px; }
+
+  .url-bar-wrapper { flex: 1; position: relative; }
+
+  .url-bar {
+    width: 100%;
+    padding: 7px 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.82rem;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 9px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-user-select: text;
+    user-select: text;
+  }
+  .url-bar:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-glow); }
+
+  .go-btn {
+    padding: 7px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.78rem; font-weight: 500;
+    color: #fff; background: var(--accent);
+    border: none; border-radius: 9px; cursor: pointer;
+    transition: background 0.2s, transform 0.1s; white-space: nowrap;
+  }
+  .go-btn:hover { background: var(--accent-hover); }
+  .go-btn:active { transform: scale(0.96); }
+
+  /* ── Content ── */
+  .browser-content {
+    flex: 1;
+    position: relative;
+    background: #fff;
+  }
+
+  .browser-content iframe {
+    width: 100%; height: 100%; border: none; display: none;
+    background: #fff;
+  }
+  .browser-content iframe.active { display: block; }
+
+  /* ── Home ── */
+  .home-page {
+    width: 100%; height: 100%;
+    background: var(--bg);
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px; padding: 32px;
+  }
+  .home-page.active { display: flex; }
+
+  .home-logo {
+    width: 64px; height: 64px;
+    margin-bottom: 4px;
+  }
+
+  .home-page h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, var(--text), var(--accent));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+
+  .home-search { width: 100%; max-width: 480px; position: relative; }
+
+  .home-search input {
+    width: 100%; padding: 13px 48px 13px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.92rem;
+    color: var(--text); background: var(--surface);
+    border: 1.5px solid var(--border); border-radius: 13px; outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    -webkit-user-select: text; user-select: text;
+  }
+  .home-search input:focus { border-color: var(--accent); box-shadow: 0 0 0 4px var(--accent-glow); }
+  .home-search input::placeholder { color: var(--text-dim); }
+
+  .home-search button {
+    position: absolute; right: 6px; top: 50%; transform: translateY(-50%);
+    width: 36px; height: 36px; border: none; border-radius: 9px;
+    background: var(--accent); color: #fff; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .home-search button:hover { background: var(--accent-hover); }
+  .home-search button svg { width: 16px; height: 16px; }
+
+  .quick-links {
+    display: flex; gap: 10px; flex-wrap: wrap;
+    justify-content: center; max-width: 500px;
+  }
+
+  .quick-link {
+    padding: 9px 14px; font-size: 0.76rem; font-weight: 500;
+    color: var(--text-dim); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 9px;
+    cursor: pointer; transition: all 0.2s; text-decoration: none;
+  }
+  .quick-link:hover { border-color: var(--accent); color: var(--text); transform: translateY(-1px); }
+
+  .note { font-size: 0.68rem; color: var(--text-dim); opacity: 0.5; margin-top: 4px; }
+
+  /* ── Loading ── */
+  .loading-bar {
+    position: absolute; top: 0; left: 0; height: 2px;
+    background: var(--accent); z-index: 10; display: none; width: 0;
+  }
+  .loading-bar.active { display: block; animation: loadBar 2.5s ease-in-out forwards; }
+
+  @keyframes loadBar {
+    0% { width: 0; } 20% { width: 50%; } 60% { width: 80%; } 100% { width: 100%; }
+  }
+
+  /* ── Error overlay ── */
+  .error-overlay {
+    position: absolute; inset: 0;
+    background: var(--bg);
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 12px; z-index: 5; padding: 40px; text-align: center;
+  }
+  .error-overlay.active { display: flex; }
+  .error-overlay .icon { font-size: 2.2rem; opacity: 0.5; }
+  .error-overlay p { color: var(--text-dim); font-size: 0.82rem; max-width: 380px; line-height: 1.6; }
+
+  .error-overlay .open-ext {
+    margin-top: 6px; padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 500;
+    color: #fff; background: var(--accent);
+    border: none; border-radius: 9px; cursor: pointer; text-decoration: none;
+  }
+
+  /* ── Install banner ── */
   .install-banner {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    background: #1a1a2a; border: 1px solid #6CABDD; border-radius: 10px;
-    padding: 16px 24px; display: flex; align-items: center; gap: 16px;
-    z-index: 9999; box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+    display: none;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 14px;
+    background: linear-gradient(135deg, #1a1020, #14141f);
+    border-bottom: 1px solid var(--border);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    flex-shrink: 0;
   }
-  .install-banner.hidden { display: none; }
-  .install-banner p { color: #ccc; font-size: 13px; }
-  .install-btn {
-    padding: 8px 20px; background: #6CABDD; color: #000; border: none;
-    border-radius: 6px; font-weight: 600; cursor: pointer; white-space: nowrap;
+  .install-banner.show { display: flex; }
+
+  .install-banner .install-btn {
+    margin-left: auto;
+    padding: 5px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem; font-weight: 500;
+    color: #fff; background: var(--accent);
+    border: none; border-radius: 7px; cursor: pointer;
   }
-  .install-btn:hover { background: #85bde8; }
-  .dismiss-btn {
-    padding: 8px 12px; background: transparent; color: #666; border: 1px solid #333;
-    border-radius: 6px; cursor: pointer; font-size: 12px;
+  .install-banner .dismiss-btn {
+    padding: 5px 10px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 0.75rem;
+    color: var(--text-dim); background: transparent;
+    border: 1px solid var(--border); border-radius: 7px; cursor: pointer;
+  }
+
+  /* Responsive */
+  @media (max-width: 600px) {
+    .tab { max-width: 100px; padding: 5px 8px; font-size: 0.68rem; }
+    .url-bar { font-size: 0.78rem; padding: 6px 10px; }
+    .go-btn { padding: 6px 10px; font-size: 0.74rem; }
+    .home-page h2 { font-size: 1.2rem; }
   }
 </style>
-
-<!-- Inline PWA manifest as data URI -->
-<link rel="manifest" href="data:application/json,{
-  &quot;name&quot;: &quot;Void Browser&quot;,
-  &quot;short_name&quot;: &quot;Browser&quot;,
-  &quot;description&quot;: &quot;Isolated embedded browser&quot;,
-  &quot;start_url&quot;: &quot;.&quot;,
-  &quot;display&quot;: &quot;standalone&quot;,
-  &quot;background_color&quot;: &quot;#0a0a0f&quot;,
-  &quot;theme_color&quot;: &quot;#0a0a0f&quot;
-}">
 </head>
 <body>
+
+<!-- Install Banner -->
+<div class="install-banner" id="installBanner">
+  <span>🍅 Install Tomato Browser for full isolation</span>
+  <button class="install-btn" id="installBtn">Install</button>
+  <button class="dismiss-btn" id="dismissBtn">Later</button>
+</div>
+
+<!-- Tab Bar -->
+<div class="tab-bar" id="tabBar">
+  <button class="new-tab-btn" id="newTabBtn" title="New tab">+</button>
+</div>
+
+<!-- Toolbar -->
 <div class="toolbar">
-  <input class="url-bar" id="urlInput" type="text" placeholder="Enter URL or search..." spellcheck="false" autocomplete="off">
+  <div class="nav-btns">
+    <button class="nav-btn" id="backBtn" title="Back">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7"/></svg>
+    </button>
+    <button class="nav-btn" id="fwdBtn" title="Forward">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <button class="nav-btn" id="refreshBtn" title="Refresh">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h5M20 20v-5h-5"/><path stroke-linecap="round" stroke-linejoin="round" d="M20.49 9A9 9 0 005.64 5.64L4 4m16 16l-1.64-1.64A9 9 0 013.51 15"/></svg>
+    </button>
+    <button class="nav-btn" id="homeBtn" title="Home">
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M3 12l9-9 9 9M5 10v10a1 1 0 001 1h3a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1h3a1 1 0 001-1V10"/></svg>
+    </button>
+  </div>
+  <div class="url-bar-wrapper">
+    <input type="text" class="url-bar" id="urlBar" placeholder="Search or enter URL…" />
+  </div>
   <button class="go-btn" id="goBtn">Go</button>
 </div>
-<div class="content" id="content"></div>
 
-<!-- Install prompt -->
-<div class="install-banner hidden" id="installBanner">
-  <p>Install as standalone app to run outside Chrome with no extensions</p>
-  <button class="install-btn" id="installBtn">Install</button>
-  <button class="dismiss-btn" id="dismissBtn">&#10005;</button>
+<!-- Content Area -->
+<div class="browser-content" id="contentArea">
+  <div class="loading-bar" id="loadingBar"></div>
 </div>
 
 <script>
-(function() {
-  const urlInput = document.getElementById('urlInput');
-  const content = document.getElementById('content');
+  // ── Config ──
+  const SEARCH_URL = 'https://search.sapti.me/search?q=';
+  const quickLinks = [
+    { name: 'Wikipedia', url: 'https://en.m.wikipedia.org/wiki/Main_Page' },
+    { name: 'Archive.org', url: 'https://archive.org' },
+    { name: 'Hacker News', url: 'https://news.ycombinator.com' },
+    { name: 'MDN Docs', url: 'https://developer.mozilla.org' },
+    { name: 'Reddit', url: 'https://old.reddit.com' },
+    { name: 'StackOverflow', url: 'https://stackoverflow.com' },
+    { name: 'GitHub', url: 'https://github.com' },
+  ];
+
+  // ── State ──
+  let tabs = [];
+  let activeTabId = null;
+  let tabCounter = 0;
+
+  // ── DOM ──
+  const tabBar = document.getElementById('tabBar');
+  const newTabBtn = document.getElementById('newTabBtn');
+  const urlBar = document.getElementById('urlBar');
+  const goBtn = document.getElementById('goBtn');
+  const backBtn = document.getElementById('backBtn');
+  const fwdBtn = document.getElementById('fwdBtn');
+  const refreshBtn = document.getElementById('refreshBtn');
+  const homeBtn = document.getElementById('homeBtn');
+  const contentArea = document.getElementById('contentArea');
+  const loadingBar = document.getElementById('loadingBar');
+
+  // ── PWA Install ──
+  let deferredPrompt = null;
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById('installBanner').classList.add('show');
+  });
+
+  document.getElementById('installBtn').addEventListener('click', async () => {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    const result = await deferredPrompt.userChoice;
+    deferredPrompt = null;
+    document.getElementById('installBanner').classList.remove('show');
+  });
+
+  document.getElementById('dismissBtn').addEventListener('click', () => {
+    document.getElementById('installBanner').classList.remove('show');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    document.getElementById('installBanner').classList.remove('show');
+  });
+
+  // ── Tab Management ──
+  function createTab(url) {
+    const id = 'tab-' + (++tabCounter);
+    const tab = { id, url: url || '', title: 'New Tab', history: [], historyIndex: -1 };
+    tabs.push(tab);
+
+    const el = document.createElement('div');
+    el.className = 'tab';
+    el.dataset.id = id;
+    el.innerHTML = '<span class="tab-label">New Tab</span><span class="tab-close">\u00d7</span>';
+    el.querySelector('.tab-label').addEventListener('click', () => switchTab(id));
+    el.querySelector('.tab-close').addEventListener('click', (e) => { e.stopPropagation(); closeTab(id); });
+    tabBar.insertBefore(el, newTabBtn);
+
+    // Home page
+    const home = document.createElement('div');
+    home.className = 'home-page';
+    home.id = id + '-home';
+    home.innerHTML = `
+      <img class="home-logo" src="icons/icon-192.png" alt="Tomato" onerror="this.style.display='none'">
+      <h2>Tomato Browser</h2>
+      <div class="home-search">
+        <input type="text" placeholder="Search or enter URL\u2026" />
+        <button><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"/></svg></button>
+      </div>
+      <div class="quick-links">${quickLinks.map(l => `<div class="quick-link" data-url="${l.url}">${l.name}</div>`).join('')}</div>
+      <div class="note">Isolated from Chrome extensions when installed as PWA</div>
+    `;
+    contentArea.appendChild(home);
+
+    home.querySelector('.home-search input').addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') navigateTo(e.target.value);
+    });
+    home.querySelector('.home-search button').addEventListener('click', () => {
+      navigateTo(home.querySelector('.home-search input').value);
+    });
+    home.querySelectorAll('.quick-link').forEach(ql => {
+      ql.addEventListener('click', () => navigateTo(ql.dataset.url));
+    });
+
+    // Iframe
+    const iframe = document.createElement('iframe');
+    iframe.id = id + '-frame';
+    iframe.sandbox = 'allow-same-origin allow-scripts allow-popups allow-forms allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation';
+    iframe.allow = 'fullscreen; autoplay; clipboard-write';
+    iframe.referrerPolicy = 'no-referrer';
+    contentArea.appendChild(iframe);
+
+    iframe.addEventListener('load', () => {
+      loadingBar.classList.remove('active');
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        tab.title = (doc.title || tab.url).substring(0, 30);
+      } catch(e) {
+        try { tab.title = new URL(tab.url).hostname; } catch(e2) {}
+      }
+      updateTabLabel(id);
+    });
+
+    // Error overlay
+    const errDiv = document.createElement('div');
+    errDiv.className = 'error-overlay';
+    errDiv.id = id + '-error';
+    errDiv.innerHTML = `
+      <div class="icon">\u26a0\ufe0f</div>
+      <p>This site blocked iframe embedding.<br>Try opening in a new tab instead.</p>
+      <a class="open-ext" target="_blank" rel="noopener">Open externally \u2192</a>
+    `;
+    contentArea.appendChild(errDiv);
+
+    switchTab(id);
+    if (url) navigateTo(url);
+    return id;
+  }
+
+  function switchTab(id) {
+    activeTabId = id;
+    const tab = tabs.find(t => t.id === id);
+
+    document.querySelectorAll('.tab').forEach(el => el.classList.toggle('active', el.dataset.id === id));
+    contentArea.querySelectorAll('.home-page, iframe, .error-overlay').forEach(el => el.classList.remove('active'));
+
+    if (!tab.url) {
+      document.getElementById(id + '-home').classList.add('active');
+      urlBar.value = '';
+      // Focus the home search input
+      setTimeout(() => {
+        const inp = document.querySelector('#' + id + '-home .home-search input');
+        if (inp) inp.focus();
+      }, 50);
+    } else {
+      document.getElementById(id + '-frame').classList.add('active');
+      urlBar.value = tab.url;
+    }
+  }
+
+  function closeTab(id) {
+    const idx = tabs.findIndex(t => t.id === id);
+    if (idx === -1) return;
+
+    document.querySelector(`.tab[data-id="${id}"]`).remove();
+    ['home', 'frame', 'error'].forEach(s => {
+      const el = document.getElementById(id + '-' + s);
+      if (el) el.remove();
+    });
+
+    tabs.splice(idx, 1);
+    if (tabs.length === 0) createTab();
+    else if (activeTabId === id) switchTab(tabs[Math.min(idx, tabs.length - 1)].id);
+  }
+
+  function updateTabLabel(id) {
+    const tab = tabs.find(t => t.id === id);
+    const el = document.querySelector(`.tab[data-id="${id}"] .tab-label`);
+    if (el && tab) el.textContent = tab.title || 'New Tab';
+  }
 
   function normalizeUrl(input) {
     input = input.trim();
-    if (!input) return null;
+    if (!input) return '';
     if (/^https?:\/\//i.test(input)) return input;
-    if (/^[a-zA-Z0-9]([a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}/.test(input)) return 'https://' + input;
-    return 'https://html.duckduckgo.com/html/?q=' + encodeURIComponent(input);
+    if (/^[\w-]+(\.[\w-]+)+/.test(input)) return 'https://' + input;
+    return SEARCH_URL + encodeURIComponent(input);
   }
 
-  function go() {
-    const url = normalizeUrl(urlInput.value);
+  function navigateTo(input) {
+    const url = normalizeUrl(input);
     if (!url) return;
-    urlInput.value = url;
-    content.innerHTML = '';
-    const f = document.createElement('iframe');
-    f.setAttribute('referrerpolicy', 'no-referrer');
-    f.setAttribute('credentialless', '');
-    f.src = url;
-    content.appendChild(f);
+
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (!tab) return;
+
+    tab.url = url;
+    try { tab.title = new URL(url).hostname; } catch(e) { tab.title = url.substring(0, 30); }
+    updateTabLabel(activeTabId);
+    urlBar.value = url;
+
+    // History
+    tab.history = tab.history.slice(0, tab.historyIndex + 1);
+    tab.history.push(url);
+    tab.historyIndex = tab.history.length - 1;
+
+    // Show frame
+    document.getElementById(activeTabId + '-home').classList.remove('active');
+    document.getElementById(activeTabId + '-error').classList.remove('active');
+    const frame = document.getElementById(activeTabId + '-frame');
+    frame.classList.add('active');
+
+    loadingBar.classList.remove('active');
+    void loadingBar.offsetWidth;
+    loadingBar.classList.add('active');
+
+    frame.src = url;
+
+    // Detect blocked loads
+    const checkId = activeTabId;
+    setTimeout(() => {
+      try {
+        const f = document.getElementById(checkId + '-frame');
+        if (!f) return;
+        const doc = f.contentDocument || f.contentWindow.document;
+        if (!doc || !doc.body || doc.body.innerHTML === '') showError(checkId);
+      } catch(e) { /* cross-origin — likely loaded fine */ }
+    }, 5000);
   }
 
-  urlInput.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
-  urlInput.addEventListener('keypress', e => { if (e.key === 'Enter') { e.preventDefault(); go(); } });
-  document.getElementById('goBtn').addEventListener('click', go);
-  urlInput.addEventListener('focus', () => urlInput.select());
-
-  // --- PWA Install Logic ---
-  let deferredPrompt = null;
-  const banner = document.getElementById('installBanner');
-  const installBtn = document.getElementById('installBtn');
-  const dismissBtn = document.getElementById('dismissBtn');
-
-  window.addEventListener('beforeinstallprompt', e => {
-    e.preventDefault();
-    deferredPrompt = e;
-    banner.classList.remove('hidden');
-  });
-
-  installBtn.addEventListener('click', async () => {
-    if (!deferredPrompt) {
-      // Fallback: show manual instructions
-      alert('To install as a standalone app:\n\n1. Click the three-dot menu (⋮) in Chrome\n2. Select "Install app" or "Create shortcut"\n3. Check "Open as window"\n4. Click Install\n\nThis opens it in its own window with no extensions.');
-      return;
-    }
-    deferredPrompt.prompt();
-    const result = await deferredPrompt.userChoice;
-    if (result.outcome === 'accepted') banner.classList.add('hidden');
-    deferredPrompt = null;
-  });
-
-  dismissBtn.addEventListener('click', () => banner.classList.add('hidden'));
-
-  window.addEventListener('appinstalled', () => {
-    banner.classList.add('hidden');
-    deferredPrompt = null;
-  });
-
-  // If not installable after 3s, show manual instructions button
-  setTimeout(() => {
-    if (!deferredPrompt && !window.matchMedia('(display-mode: standalone)').matches) {
-      banner.classList.remove('hidden');
-    }
-  }, 3000);
-
-  // Hide banner if already running as standalone
-  if (window.matchMedia('(display-mode: standalone)').matches) {
-    banner.classList.add('hidden');
+  function showError(id) {
+    loadingBar.classList.remove('active');
+    const tab = tabs.find(t => t.id === id);
+    const errDiv = document.getElementById(id + '-error');
+    if (!errDiv || !tab) return;
+    document.getElementById(id + '-frame').classList.remove('active');
+    errDiv.classList.add('active');
+    errDiv.querySelector('.open-ext').href = tab.url;
   }
 
-  // Start page
-  urlInput.value = 'https://html.duckduckgo.com/html/';
-  go();
-})();
+  function goHome() {
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (!tab) return;
+    tab.url = '';
+    tab.title = 'New Tab';
+    updateTabLabel(activeTabId);
+    urlBar.value = '';
+    contentArea.querySelectorAll('.home-page, iframe, .error-overlay').forEach(el => el.classList.remove('active'));
+    document.getElementById(activeTabId + '-home').classList.add('active');
+  }
+
+  // ── Event Listeners ──
+  goBtn.addEventListener('click', () => navigateTo(urlBar.value));
+  urlBar.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigateTo(urlBar.value); });
+  homeBtn.addEventListener('click', goHome);
+
+  backBtn.addEventListener('click', () => {
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (tab && tab.historyIndex > 0) {
+      tab.historyIndex--;
+      tab.url = tab.history[tab.historyIndex];
+      urlBar.value = tab.url;
+      document.getElementById(activeTabId + '-frame').src = tab.url;
+    }
+  });
+
+  fwdBtn.addEventListener('click', () => {
+    const tab = tabs.find(t => t.id === activeTabId);
+    if (tab && tab.historyIndex < tab.history.length - 1) {
+      tab.historyIndex++;
+      tab.url = tab.history[tab.historyIndex];
+      urlBar.value = tab.url;
+      document.getElementById(activeTabId + '-frame').src = tab.url;
+    }
+  });
+
+  refreshBtn.addEventListener('click', () => {
+    const frame = document.getElementById(activeTabId + '-frame');
+    if (frame && frame.src) { frame.src = frame.src; }
+  });
+
+  newTabBtn.addEventListener('click', () => createTab());
+
+  // Keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 't') { e.preventDefault(); createTab(); }
+      if (e.key === 'w') { e.preventDefault(); closeTab(activeTabId); }
+      if (e.key === 'l') { e.preventDefault(); urlBar.focus(); urlBar.select(); }
+    }
+  });
+
+  // ── Service Worker ──
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').then(() => {
+      console.log('SW registered');
+    }).catch((err) => {
+      console.log('SW registration failed:', err);
+    });
+  }
+
+  // ── Init ──
+  createTab();
 </script>
+
 </body>
 </html>
