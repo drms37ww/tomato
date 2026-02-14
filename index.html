@@ -164,10 +164,14 @@
       </div>
       <div class="start-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="startSearchInput" placeholder="Search Google or type a URL" autofocus>
+        <input type="text" id="startSearchInput" placeholder="Search DuckDuckGo or type a URL" autofocus>
       </div>
       <div class="shortcuts">
-        <a class="shortcut" onclick="navigate('https://www.google.com/webhp?igu=1')">
+        <a class="shortcut" onclick="navigate('https://html.duckduckgo.com/')">
+          <div class="shortcut-icon" style="background:#de5833;">🔍</div>
+          <div class="shortcut-label">Search</div>
+        </a>
+        <a class="shortcut" onclick="navigate('https://www.google.com')">
           <div class="shortcut-icon" style="background:#4285f4;">G</div>
           <div class="shortcut-label">Google</div>
         </a>
@@ -187,9 +191,9 @@
           <div class="shortcut-icon" style="background:#ff6600;">Y</div>
           <div class="shortcut-label">HN</div>
         </a>
-        <a class="shortcut" onclick="navigate('https://lite.duckduckgo.com')">
-          <div class="shortcut-icon" style="background:#de5833;">D</div>
-          <div class="shortcut-label">DDG</div>
+        <a class="shortcut" onclick="navigate('https://lite.cnn.com')">
+          <div class="shortcut-icon" style="background:#cc0000;">C</div>
+          <div class="shortcut-label">CNN Lite</div>
         </a>
       </div>
     </div>
@@ -226,8 +230,8 @@ const PROXIES = [
   u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
 ];
 let proxyIdx = 0;
-const GOOGLE_SEARCH = 'https://www.google.com/search?igu=1&q=';
-const HOME_URL = 'https://www.google.com/webhp?igu=1';
+const SEARCH_URL = 'https://html.duckduckgo.com/html/?q=';
+const HOME_URL = 'https://html.duckduckgo.com/';
 
 let tabs = [], activeTabId = null, tabCounter = 0, fetchCtrl = null;
 
@@ -290,7 +294,7 @@ function normalize(s) {
   if (!s) return HOME_URL;
   if (/^https?:\/\//i.test(s)) return s;
   if (/^[a-zA-Z0-9]([a-zA-Z0-9-]*\.)+[a-zA-Z]{2,}/.test(s)) return 'https://' + s;
-  return GOOGLE_SEARCH + encodeURIComponent(s);
+  return SEARCH_URL + encodeURIComponent(s);
 }
 function goBack() { const t=aTab(); if(!t||t.hi<=0)return; t.hi--; t.url=t.hist[t.hi]; t.title=host(t.url); urlInput.value=clean(t.url); updateNav(); renderTabs(); loadProxy(t.url,false); }
 function goForward() { const t=aTab(); if(!t||t.hi>=t.hist.length-1)return; t.hi++; t.url=t.hist[t.hi]; t.title=host(t.url); urlInput.value=clean(t.url); updateNav(); renderTabs(); loadProxy(t.url,false); }
@@ -353,9 +357,14 @@ function injectContent(origUrl, html) {
 
   document.addEventListener('submit',function(e){
     var f=e.target;if(!f||f.tagName!=='FORM')return;
+    e.preventDefault();
     var m=(f.method||'GET').toUpperCase();
-    if(m==='GET'){e.preventDefault();var fd=new FormData(f);var p=new URLSearchParams(fd).toString();
-    var u=(f.action||'${origUrl}')+'?'+p;parent.postMessage({_t:1,type:'nav',url:u},'*');}
+    var fd=new FormData(f);
+    var p=new URLSearchParams(fd).toString();
+    var action=f.action||'${origUrl}';
+    // Convert all forms to GET (works for search engines)
+    var url=action+(action.indexOf('?')>-1?'&':'?')+p;
+    parent.postMessage({_t:1,type:'nav',url:url},'*');
   },true);
 
   var oo=window.open;window.open=function(u){if(u)parent.postMessage({_t:1,type:'nav',url:new URL(u,'${baseHref}').href},'*');};
