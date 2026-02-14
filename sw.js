@@ -1,4 +1,4 @@
-const CACHE = 'tomato-v3';
+const CACHE = 'tomato-v4';
 const SHELL = ['index.html', 'manifest.json', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {
