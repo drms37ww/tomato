@@ -2,6 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://fonts.gstatic.com https://api.allorigins.win https://corsproxy.io; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.allorigins.win https://corsproxy.io; object-src 'none'; base-uri 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Tomato Browser</title>
   <link rel="manifest" href="manifest.json">
@@ -135,7 +136,7 @@
       <span class="secure-badge" id="secureBadge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       </span>
-      <input type="text" id="urlInput" placeholder="Search Google or enter URL" autocomplete="off" spellcheck="false">
+      <input type="text" id="urlInput" placeholder="Search or enter URL" autocomplete="off" spellcheck="false">
       <span class="proxy-badge" id="proxyBadge" style="display:none;">ISOLATED</span>
     </div>
   </div>
@@ -147,7 +148,7 @@
       <div class="start-title">Tomato</div>
       <div class="start-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="startSearchInput" placeholder="Search Google or type a URL" autofocus>
+        <input type="text" id="startSearchInput" placeholder="Search DuckDuckGo or type a URL" autofocus>
       </div>
     </div>
 
@@ -172,8 +173,8 @@ const PROXIES = [
   u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
 ];
 let proxyIdx = 0;
-const SEARCH_URL = 'https://www.google.com/search?q=';
-const HOME_URL = 'https://www.google.com';
+const SEARCH_URL = 'https://html.duckduckgo.com/html/?q=';
+const HOME_URL = 'https://html.duckduckgo.com/';
 
 let tabs = [], activeTabId = null, tabCounter = 0, fetchCtrl = null;
 
