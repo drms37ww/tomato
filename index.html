@@ -284,6 +284,31 @@ function injectContent(origUrl, html) {
 
   const script = `<script>
 (function(){
+  // Extension DOM defense inside srcdoc
+  var EXT_KW=['grammarly','lastpass','honey','ublock','adblock','ghostery','dashlane','bitwarden','1password','darkreader','dark-reader','stylus','tampermonkey','metamask','norton','mcafee','avast'];
+  function badNode(n){
+    if(n.nodeType!==1)return false;
+    var s=n.src||n.href||'';
+    if(s.startsWith('chrome-extension://')||s.startsWith('moz-extension://'))return true;
+    var id=(n.id||'').toLowerCase(),cl=(n.className||'').toString().toLowerCase();
+    for(var i=0;i<EXT_KW.length;i++){if(id.includes(EXT_KW[i])||cl.includes(EXT_KW[i]))return true;}
+    if(n.shadowRoot)return true;
+    return false;
+  }
+  new MutationObserver(function(ms){
+    for(var i=0;i<ms.length;i++){
+      for(var j=0;j<ms[i].addedNodes.length;j++){
+        if(badNode(ms[i].addedNodes[j]))ms[i].addedNodes[j].remove();
+      }
+      if(ms[i].type==='attributes'&&ms[i].attributeName){
+        var a=ms[i].attributeName.toLowerCase();
+        var v=(ms[i].target.getAttribute(a)||'').toLowerCase();
+        if(v.includes('chrome-extension')||a.includes('grammarly')||a.includes('data-gr-')||a.includes('darkreader'))
+          ms[i].target.removeAttribute(ms[i].attributeName);
+      }
+    }
+  }).observe(document.documentElement,{childList:true,subtree:true,attributes:true});
+
   function rt(){var t=document.title||'';parent.postMessage({_t:1,type:'title',title:t},'*');}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',rt);else setTimeout(rt,80);
   new MutationObserver(rt).observe(document.querySelector('head')||document.documentElement,{subtree:true,childList:true});
@@ -390,6 +415,43 @@ if ('serviceWorker' in navigator) {
   }).catch(() => {});
   navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
+
+// ── Extension DOM Defense (shell) ──
+(function(){
+  // Mark all our own elements
+  document.querySelectorAll('style,script,link').forEach(function(el){el._tm=true;});
+  var EXT_KW=['grammarly','lastpass','honey','ublock','adblock','ghostery','dashlane','bitwarden','1password','darkreader','dark-reader','stylus','tampermonkey','wappalyzer','react-devtools','metamask','norton','mcafee','avast','avg','kaspersky','trustedsite','hovercard','octotree','refined-github','enhancer','youcam','loom','vidyard','hubspot','salesforce','zoominfo','clearbit','apollo'];
+
+  function isExtension(n){
+    if(n.nodeType!==1||n._tm)return false;
+    var s=n.src||n.href||'';
+    if(s.startsWith('chrome-extension://')||s.startsWith('moz-extension://'))return true;
+    var tag=n.nodeName;
+    // Any script/style/link we didn't create
+    if((tag==='SCRIPT'||tag==='STYLE'||tag==='LINK')&&!n._tm)return true;
+    if(tag==='IFRAME'&&(s.startsWith('chrome-extension://')||s.startsWith('about:blank')))return true;
+    var id=(n.id||'').toLowerCase();
+    var cl=(n.className||'').toString().toLowerCase();
+    for(var i=0;i<EXT_KW.length;i++){if(id.includes(EXT_KW[i])||cl.includes(EXT_KW[i]))return true;}
+    if(n.shadowRoot)return true;
+    return false;
+  }
+
+  new MutationObserver(function(ms){
+    for(var i=0;i<ms.length;i++){
+      var m=ms[i];
+      for(var j=0;j<m.addedNodes.length;j++){
+        if(isExtension(m.addedNodes[j]))m.addedNodes[j].remove();
+      }
+      if(m.type==='attributes'&&m.attributeName){
+        var a=m.attributeName.toLowerCase();
+        var v=(m.target.getAttribute(a)||'').toLowerCase();
+        if(v.includes('chrome-extension')||v.includes('moz-extension')||a.includes('grammarly')||a.includes('data-gr-')||a.includes('darkreader')||a.includes('lastpass'))
+          m.target.removeAttribute(m.attributeName);
+      }
+    }
+  }).observe(document.documentElement,{childList:true,subtree:true,attributes:true});
+})();
 
 createNewTab();
 </script>
