@@ -432,7 +432,29 @@ document.addEventListener('keydown', e => {
 });
 
 // ── Service Worker ──
-if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+// ── Service Worker (auto-updates) ──
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    // Check for updates on every load
+    reg.update();
+    // When a new SW is waiting, tell it to activate immediately
+    reg.addEventListener('updatefound', () => {
+      const newSW = reg.installing;
+      if (newSW) {
+        newSW.addEventListener('statechange', () => {
+          if (newSW.state === 'activated') {
+            // Reload to pick up new version
+            window.location.reload();
+          }
+        });
+      }
+    });
+  }).catch(() => {});
+  // If controller changes (new SW took over), reload
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    window.location.reload();
+  });
+}
 
 // ── Init ──
 createNewTab();
