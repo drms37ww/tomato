@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
   <title>Tomato Browser</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#111110">
+  <meta name="theme-color" content="#000000">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="icon" href="icon-192.png">
@@ -14,18 +14,16 @@
   <style>
     *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --bg: #111110;
-      --surface: #1e1d1a;
-      --surface-2: #2a2924;
-      --border: #33322e;
-      --border-focus: #e85d3a;
-      --text: #ece8e1;
-      --text-dim: #8a8680;
-      --text-dark: #5c5955;
-      --accent: #e85d3a;
-      --accent-soft: rgba(232, 93, 58, 0.12);
-      --green: #6abf69;
-      --yellow: #d4a843;
+      --bg: #000000;
+      --surface: #0a0a0a;
+      --surface-2: #141414;
+      --border: #1e1e1e;
+      --border-focus: #6CABDD;
+      --text: #e0e0e0;
+      --text-dim: #666666;
+      --text-dark: #3a3a3a;
+      --accent: #6CABDD;
+      --accent-soft: rgba(108, 171, 221, 0.1);
       --toolbar-h: 48px;
       --tabs-h: 38px;
     }
@@ -63,12 +61,12 @@
     /* ── URL Bar ── */
     .url-bar-wrap { flex: 1; display: flex; align-items: center; height: 32px; background: var(--bg); border: 1.5px solid var(--border); border-radius: 8px; padding: 0 10px; gap: 7px; margin: 0 2px; transition: border-color 0.2s, box-shadow 0.2s; }
     .url-bar-wrap:focus-within { border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--accent-soft); }
-    .secure-badge { display: flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 500; color: var(--green); flex-shrink: 0; opacity: 0; transition: opacity 0.2s; }
+    .secure-badge { display: flex; align-items: center; font-size: 11px; font-weight: 500; color: var(--accent); flex-shrink: 0; opacity: 0; transition: opacity 0.2s; }
     .secure-badge.visible { opacity: 1; }
     .secure-badge svg { width: 12px; height: 12px; }
     #urlInput { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; min-width: 0; }
     #urlInput::placeholder { color: var(--text-dark); }
-    #urlInput::selection { background: var(--accent); color: #fff; }
+    #urlInput::selection { background: var(--accent); color: #000; }
     .proxy-badge { font-size: 9px; font-weight: 600; letter-spacing: 0.5px; text-transform: uppercase; color: var(--accent); background: var(--accent-soft); padding: 2px 6px; border-radius: 4px; flex-shrink: 0; }
 
     /* ── Content ── */
@@ -76,32 +74,21 @@
     .browser-content iframe { width: 100%; height: 100%; border: none; display: block; background: #fff; }
 
     /* ── Loading ── */
-    .loading-bar { position: absolute; top: 0; left: 0; height: 2.5px; background: linear-gradient(90deg, var(--accent), var(--yellow)); width: 0; z-index: 20; border-radius: 0 3px 3px 0; pointer-events: none; }
+    .loading-bar { position: absolute; top: 0; left: 0; height: 2px; background: var(--accent); width: 0; z-index: 20; border-radius: 0 2px 2px 0; pointer-events: none; }
     .loading-bar.loading { width: 80%; transition: width 12s cubic-bezier(0.08, 0.5, 0.15, 1); }
     .loading-bar.done { width: 100%; transition: width 0.15s; animation: fadeOut 0.4s 0.2s forwards; }
     @keyframes fadeOut { to { opacity: 0; } }
 
     /* ── Start Page ── */
-    .start-page { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 5; gap: 32px; padding: 20px; }
+    .start-page { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); z-index: 5; gap: 28px; padding: 20px; }
     .start-page.hidden { display: none; }
-    .start-brand { display: flex; flex-direction: column; align-items: center; gap: 6px; }
-    .start-logo { width: 64px; height: 64px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 36px; background: linear-gradient(135deg, #e85d3a 0%, #d4a843 100%); box-shadow: 0 8px 32px rgba(232, 93, 58, 0.25); animation: logoEntry 0.6s cubic-bezier(0.16, 1, 0.3, 1) both; }
-    @keyframes logoEntry { from { transform: scale(0.7) rotate(-8deg); opacity: 0; } }
-    .start-title { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; animation: fadeUp 0.5s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
-    .start-subtitle { font-size: 13px; color: var(--text-dim); animation: fadeUp 0.5s 0.15s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .start-title { font-size: 20px; font-weight: 600; letter-spacing: -0.3px; color: var(--accent); animation: fadeUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both; }
     @keyframes fadeUp { from { transform: translateY(8px); opacity: 0; } }
-
-    .start-search { display: flex; align-items: center; width: min(520px, 92%); height: 46px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 12px; padding: 0 16px; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; animation: fadeUp 0.5s 0.2s cubic-bezier(0.16, 1, 0.3, 1) both; }
+    .start-search { display: flex; align-items: center; width: min(480px, 90%); height: 44px; background: var(--surface); border: 1.5px solid var(--border); border-radius: 22px; padding: 0 16px; gap: 10px; transition: border-color 0.2s, box-shadow 0.2s; animation: fadeUp 0.5s 0.1s cubic-bezier(0.16, 1, 0.3, 1) both; }
     .start-search:focus-within { border-color: var(--border-focus); box-shadow: 0 0 0 4px var(--accent-soft); }
-    .start-search svg { width: 16px; height: 16px; color: var(--text-dark); flex-shrink: 0; }
-    #startSearchInput { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 15px; }
+    .start-search svg { width: 15px; height: 15px; color: var(--text-dark); flex-shrink: 0; }
+    #startSearchInput { flex: 1; background: none; border: none; outline: none; color: var(--text); font-family: 'Outfit', sans-serif; font-size: 14px; }
     #startSearchInput::placeholder { color: var(--text-dark); }
-
-    .shortcuts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; max-width: 520px; animation: fadeUp 0.5s 0.3s cubic-bezier(0.16, 1, 0.3, 1) both; }
-    .shortcut { display: flex; flex-direction: column; align-items: center; gap: 7px; width: 74px; padding: 10px 6px; border-radius: 10px; cursor: pointer; transition: background 0.12s; text-decoration: none; -webkit-tap-highlight-color: transparent; }
-    .shortcut:hover { background: var(--surface); }
-    .shortcut-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; color: #fff; }
-    .shortcut-label { font-size: 11px; color: var(--text-dim); text-align: center; font-weight: 500; }
 
     /* ── Overlays ── */
     .overlay-msg { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; background: var(--bg); gap: 12px; z-index: 6; padding: 24px; text-align: center; }
@@ -109,7 +96,7 @@
     .overlay-msg .ov-icon { font-size: 36px; margin-bottom: 4px; }
     .overlay-msg h2 { font-size: 18px; font-weight: 600; }
     .overlay-msg p { color: var(--text-dim); font-size: 13px; max-width: 380px; line-height: 1.6; }
-    .overlay-msg button { margin-top: 4px; padding: 9px 22px; background: var(--accent); color: #fff; border: none; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.12s; }
+    .overlay-msg button { margin-top: 4px; padding: 9px 22px; background: var(--accent); color: #000; border: none; border-radius: 8px; font-family: 'Outfit', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: opacity 0.12s; }
     .overlay-msg button:hover { opacity: 0.85; }
     .overlay-msg .btn-secondary { background: var(--surface-2); color: var(--text-dim); }
     .overlay-msg .btn-row { display: flex; gap: 8px; }
@@ -148,7 +135,7 @@
       <span class="secure-badge" id="secureBadge">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg>
       </span>
-      <input type="text" id="urlInput" placeholder="Search or enter URL" autocomplete="off" spellcheck="false">
+      <input type="text" id="urlInput" placeholder="Search Google or enter URL" autocomplete="off" spellcheck="false">
       <span class="proxy-badge" id="proxyBadge" style="display:none;">ISOLATED</span>
     </div>
   </div>
@@ -157,44 +144,10 @@
     <div class="loading-bar" id="loadingBar"></div>
 
     <div class="start-page" id="startPage">
-      <div class="start-brand">
-        <div class="start-logo">🍅</div>
-        <div class="start-title">Tomato</div>
-        <div class="start-subtitle">Extension-isolated browsing</div>
-      </div>
+      <div class="start-title">Tomato</div>
       <div class="start-search">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="text" id="startSearchInput" placeholder="Search DuckDuckGo or type a URL" autofocus>
-      </div>
-      <div class="shortcuts">
-        <a class="shortcut" onclick="navigate('https://html.duckduckgo.com/')">
-          <div class="shortcut-icon" style="background:#de5833;">🔍</div>
-          <div class="shortcut-label">Search</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://www.google.com')">
-          <div class="shortcut-icon" style="background:#4285f4;">G</div>
-          <div class="shortcut-label">Google</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://en.m.wikipedia.org')">
-          <div class="shortcut-icon" style="background:#636466;">W</div>
-          <div class="shortcut-label">Wikipedia</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://github.com')">
-          <div class="shortcut-icon" style="background:#2d333b;">⌥</div>
-          <div class="shortcut-label">GitHub</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://old.reddit.com')">
-          <div class="shortcut-icon" style="background:#ff4500;">R</div>
-          <div class="shortcut-label">Reddit</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://news.ycombinator.com')">
-          <div class="shortcut-icon" style="background:#ff6600;">Y</div>
-          <div class="shortcut-label">HN</div>
-        </a>
-        <a class="shortcut" onclick="navigate('https://lite.cnn.com')">
-          <div class="shortcut-icon" style="background:#cc0000;">C</div>
-          <div class="shortcut-label">CNN Lite</div>
-        </a>
+        <input type="text" id="startSearchInput" placeholder="Search Google or type a URL" autofocus>
       </div>
     </div>
 
@@ -214,24 +167,13 @@
 </div>
 
 <script>
-/* ═══════════════════════════════════════════════════
-   HOW ISOLATION WORKS:
-   1. Pages are fetched via CORS proxy (server-side fetch, no CORS issues)
-   2. HTML is injected into iframe via srcdoc attribute
-   3. srcdoc iframes have URL "about:srcdoc"
-   4. Chrome extension content_scripts match on URL patterns
-   5. <all_urls> matches http/https/file/ftp — NOT about: URLs
-   6. Therefore: extension content scripts cannot inject into srcdoc frames
-   7. Result: browsing content is isolated from all extensions
-   ═══════════════════════════════════════════════════ */
-
 const PROXIES = [
   u => `https://api.allorigins.win/raw?url=${encodeURIComponent(u)}`,
   u => `https://corsproxy.io/?${encodeURIComponent(u)}`,
 ];
 let proxyIdx = 0;
-const SEARCH_URL = 'https://html.duckduckgo.com/html/?q=';
-const HOME_URL = 'https://html.duckduckgo.com/';
+const SEARCH_URL = 'https://www.google.com/search?q=';
+const HOME_URL = 'https://www.google.com';
 
 let tabs = [], activeTabId = null, tabCounter = 0, fetchCtrl = null;
 
@@ -241,7 +183,6 @@ const startSearchInput = $('startSearchInput'), errorOverlay = $('errorOverlay')
 const loadingBar = $('loadingBar'), tabsContainer = $('tabsContainer');
 const secureBadge = $('secureBadge'), proxyBadge = $('proxyBadge'), toast = $('toast');
 
-// ── Tabs ──
 function makeTab(url) {
   return { id: ++tabCounter, url: url||'', title: 'New Tab', hist: [], hi: -1, isStart: !url };
 }
@@ -278,7 +219,6 @@ function renderTabs() {
   });
 }
 
-// ── Navigation ──
 function navigate(raw) {
   const url = normalize(raw);
   const t = aTab();
@@ -303,7 +243,6 @@ function goHome() { const t=aTab(); t.isStart=true; t.title='New Tab'; showStart
 function openExternal() { const t=aTab(); if(t&&t.url) window.open(t.url,'_blank'); }
 function updateNav() { const t=aTab(); $('btnBack').disabled=!t||t.hi<=0; $('btnForward').disabled=!t||t.hi>=t.hist.length-1; }
 
-// ── Proxy Fetch + srcdoc Injection ──
 async function loadProxy(url, silent) {
   if (fetchCtrl) fetchCtrl.abort();
   fetchCtrl = new AbortController();
@@ -340,8 +279,8 @@ async function loadProxy(url, silent) {
 
 function injectContent(origUrl, html) {
   const baseHref = getBase(origUrl);
+  const origin = getOrigin(origUrl);
 
-  // Interceptor script: catches clicks, forms, reports title back to parent
   const script = `<script>
 (function(){
   function rt(){var t=document.title||'';parent.postMessage({_t:1,type:'title',title:t},'*');}
@@ -349,49 +288,54 @@ function injectContent(origUrl, html) {
   new MutationObserver(rt).observe(document.querySelector('head')||document.documentElement,{subtree:true,childList:true});
 
   document.addEventListener('click',function(e){
-    var a=e.target.closest('a');if(!a||!a.href)return;
-    var h=a.href;if(/^(javascript:|mailto:|tel:|#|blob:|data:)/.test(h))return;
+    var a=e.target.closest('a');if(!a)return;
+    var h=a.getAttribute('href');if(!h)return;
+    if(/^(javascript:|mailto:|tel:|#|blob:|data:)/.test(h))return;
     e.preventDefault();e.stopPropagation();
-    parent.postMessage({_t:1,type:'nav',url:h},'*');
+    // Resolve relative URLs
+    var abs=h;
+    if(h.startsWith('//')){abs='https:'+h;}
+    else if(h.startsWith('/')){abs='${origin}'+h;}
+    else if(!/^https?:\\/\\//.test(h)){abs='${baseHref}'+h;}
+    parent.postMessage({_t:1,type:'nav',url:abs},'*');
   },true);
 
   document.addEventListener('submit',function(e){
     var f=e.target;if(!f||f.tagName!=='FORM')return;
     e.preventDefault();
-    var m=(f.method||'GET').toUpperCase();
     var fd=new FormData(f);
     var p=new URLSearchParams(fd).toString();
     var action=f.action||'${origUrl}';
-    // Convert all forms to GET (works for search engines)
+    // Resolve action URL
+    if(action.startsWith('/')){action='${origin}'+action;}
+    else if(!/^https?:\\/\\//.test(action)){action='${baseHref}'+action;}
     var url=action+(action.indexOf('?')>-1?'&':'?')+p;
     parent.postMessage({_t:1,type:'nav',url:url},'*');
   },true);
 
-  var oo=window.open;window.open=function(u){if(u)parent.postMessage({_t:1,type:'nav',url:new URL(u,'${baseHref}').href},'*');};
+  var oo=window.open;window.open=function(u){if(u){try{u=new URL(u,'${baseHref}').href;}catch(e){}parent.postMessage({_t:1,type:'nav',url:u},'*');}};
 })();
-<\/script>`;
+<\\/script>`;
 
   const baseTag = `<base href="${escA(baseHref)}">`;
   let p = html;
 
-  // Inject base tag
+  // Remove existing base tags
+  p = p.replace(/<base[^>]*>/gi, '');
+
   if (/<head[^>]*>/i.test(p)) p = p.replace(/<head([^>]*)>/i, `<head$1>${baseTag}`);
   else if (/<html[^>]*>/i.test(p)) p = p.replace(/<html([^>]*)>/i, `<html$1><head>${baseTag}</head>`);
   else p = baseTag + p;
 
-  // Inject interceptor
   if (/<\/body>/i.test(p)) p = p.replace(/<\/body>/i, script + '</body>');
   else p += script;
 
-  // KEY: sandbox WITHOUT allow-same-origin → null origin → about:srcdoc URL
-  // Extensions cannot match this URL → no content script injection
   frame.removeAttribute('src');
   frame.setAttribute('sandbox', 'allow-scripts allow-forms allow-popups allow-modals');
   frame.srcdoc = p;
   frame.style.display = 'block';
 }
 
-// ── Message handler from srcdoc frames ──
 window.addEventListener('message', e => {
   if (!e.data || !e.data._t) return;
   const t = aTab(); if (!t) return;
@@ -405,7 +349,6 @@ window.addEventListener('message', e => {
   }
 });
 
-// ── Helpers ──
 function showStart() { startPage.classList.remove('hidden'); errorOverlay.classList.remove('visible'); frame.style.display='none'; }
 function hideStart() { startPage.classList.add('hidden'); }
 function showLoading() { loadingBar.className='loading-bar'; void loadingBar.offsetWidth; loadingBar.classList.add('loading'); }
@@ -414,10 +357,10 @@ function showToast(m) { toast.textContent=m; toast.classList.add('show'); clearT
 function clean(u) { return (u||'').replace(/^https?:\/\//,'').replace(/\/$/,''); }
 function host(u) { try{return new URL(u).hostname.replace('www.','');}catch{return u;} }
 function getBase(u) { try{const x=new URL(u);return x.origin+x.pathname.replace(/\/[^/]*$/,'/');}catch{return u;} }
+function getOrigin(u) { try{return new URL(u).origin;}catch{return '';} }
 function esc(s) { const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
 function escA(s) { return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 
-// ── Keyboard ──
 urlInput.addEventListener('keydown', e => { if(e.key==='Enter'){navigate(urlInput.value);urlInput.blur();} });
 urlInput.addEventListener('focus', () => urlInput.select());
 startSearchInput.addEventListener('keydown', e => { if(e.key==='Enter'){navigate(startSearchInput.value);startSearchInput.value='';} });
@@ -431,32 +374,22 @@ document.addEventListener('keydown', e => {
   if(e.altKey&&e.key==='ArrowRight'){e.preventDefault();goForward();}
 });
 
-// ── Service Worker ──
 // ── Service Worker (auto-updates) ──
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
-    // Check for updates on every load
     reg.update();
-    // When a new SW is waiting, tell it to activate immediately
     reg.addEventListener('updatefound', () => {
       const newSW = reg.installing;
       if (newSW) {
         newSW.addEventListener('statechange', () => {
-          if (newSW.state === 'activated') {
-            // Reload to pick up new version
-            window.location.reload();
-          }
+          if (newSW.state === 'activated') window.location.reload();
         });
       }
     });
   }).catch(() => {});
-  // If controller changes (new SW took over), reload
-  navigator.serviceWorker.addEventListener('controllerchange', () => {
-    window.location.reload();
-  });
+  navigator.serviceWorker.addEventListener('controllerchange', () => window.location.reload());
 }
 
-// ── Init ──
 createNewTab();
 </script>
 </body>
